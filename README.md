@@ -79,3 +79,10 @@ To add a cron job on macOS:
     ```
 
 Make sure to replace `/path/to/` with the actual path to the script on your system.
+
+
+
+## Recommendations:
+ 
+  * https://addons.mozilla.org/en-US/firefox/addon/add-custom-search-engine/
+
