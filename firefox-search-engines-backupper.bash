@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# Determine the OS
+OS="$(uname -s)"
+case "$OS" in
+    Linux*)     machine=Linux; path_separator="/";;
+    Darwin*)    machine=Mac; path_separator="/";;
+    CYGWIN*|MINGW32*|MSYS*|MINGW*) machine=Windows; path_separator="\\";;
+    *)          machine="UNKNOWN:$OS";;
+esac
+
+# Get the hostname
+hostname=$(hostname)
 
 # Define the backup directory relative to the script's location
 script_dir="$(dirname "$(readlink -f "$0")")"
@@ -11,8 +22,19 @@ mkdir -p "$backup_dir"
 # Define the date format
 current_date=$(date +%Y-%m-%d)
 
+# Define profile directory locations based on OS
+if [[ "$machine" == "Linux" ]]; then
+  profiles_ini_files=$(find ~/.mozilla/firefox* -name profiles.ini)
+elif [[ "$machine" == "Mac" ]]; then
+  profiles_ini_files=$(find ~/Library/Application\ Support/Firefox/Profiles -name profiles.ini)
+elif [[ "$machine" == "Windows" ]]; then
+  profiles_ini_files=$(find "$APPDATA\\Mozilla\\Firefox\\Profiles" -name profiles.ini)
+else
+  echo "Unsupported OS"
+  exit 1
+fi
+
 # Read profile paths and profile names from profiles.ini files
-profiles_ini_files=$(find ~/.mozilla/firefox* -name profiles.ini)
 declare -A profile_paths
 
 # Populate profile_paths with paths and corresponding names
@@ -25,7 +47,7 @@ for profiles_ini in $profiles_ini_files; do
       profile_name=${line#*=}
     elif [[ $line =~ ^Path= ]]; then
       profile_path=${line#*=}
-      profile_paths["$profile_dir/$profile_path"]=$profile_name
+      profile_paths["$profile_dir$path_separator$profile_path"]=$profile_name
     fi
   done < "$profiles_ini"
 done
@@ -37,8 +59,10 @@ for profile_dir in "${!profile_paths[@]}"; do
   if [ -z "$profile_name" ]; then
     profile_name=$(basename "$profile_dir")
   fi
+  # Prepend the hostname to the profile name
+  profile_name="${hostname}.${profile_name}"
   # Check if search.json.mozlz4 exists in the profile directory
-  search_file="$profile_dir/search.json.mozlz4"
+  search_file="$profile_dir${path_separator}search.json.mozlz4"
   if [ -f "$search_file" ]; then
     # Create the backup file name
     backup_file="$backup_dir/search.$current_date.${profile_name}.json.mozlz4"
@@ -47,7 +71,7 @@ for profile_dir in "${!profile_paths[@]}"; do
     echo "Copied: $search_file"
     echo "to: $backup_file"
   else
-    echo "search.json.mozlz4 not found for path: $profile_dir"
+    #~ echo "DEBUG: search.json.mozlz4 not found for path: $profile_dir"
   fi
   echo "----------------------------"
 done
