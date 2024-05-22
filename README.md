@@ -84,5 +84,12 @@ Make sure to replace `/path/to/` with the actual path to the script on your syst
 
 ## Recommendations:
  
-  * https://addons.mozilla.org/en-US/firefox/addon/add-custom-search-engine/
+### https://github.com/evilpie/add-custom-search-engine
 
+Add a custom search engine to the list of available search engines in Firefox
+    https://addons.mozilla.org/en-US/firefox/addon/add-custom-search-engine/
+
+### https://github.com/soufianesakhi/firefox-search-engines-helper
+
+Export, import and add custom firefox search engines
+    
